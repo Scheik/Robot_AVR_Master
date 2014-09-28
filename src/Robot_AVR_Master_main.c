@@ -12,109 +12,110 @@
 #define SLAVE_ADRESSE 0x50																	// slaveadress drivecontrol
 
 const char FlashString[] PROGMEM = ("MASTER gestartet..."CR);
+volatile uint8_t MD49data[18];
+volatile uint8_t MD49commands[15];
 
+void initMD49commands(void){
+	MD49commands[0]=128; 		// speed1
+	MD49commands[1]=128;		// speed2
+	MD49commands[2]=5;			// acceleration
+	MD49commands[3]=0;			// mode
+	MD49commands[4]=0;			// 0=do not reset encoders, 1=reset encoders
+	MD49commands[5]=1;			// regulator enabled
+	MD49commands[6]=0;			// timeout disabled
+	MD49commands[7]=0;			// Encoder1 Byte 1
+	MD49commands[8]=0;			// Encoder1 Byte 2
+	MD49commands[9]=0;			// Encoder1 Byte 3
+	MD49commands[10]=0;			// Encoder1 Byte 4
+	MD49commands[11]=0;			// Encoder2 Byte 1
+	MD49commands[12]=0;			// Encoder2 Byte 2
+	MD49commands[13]=0;			// Encoder2 Byte 3
+	MD49commands[14]=0;			// Encoder2 Byte 4
+}
+
+
+//Funktion: Sende in Array MD49commands gesetzte Befehle für MD49 an AVR_Slave_DriveControll
+void sendMD49commands(void){
+	uint8_t i;
+	if(!(i2c_start(SLAVE_ADRESSE+I2C_WRITE))){									// Slave bereit zum schreiben?
+		i2c_write(0x00);  														// Buffer Startadresse setzen
+		for (i=0;i<15;i++){
+			i2c_write(MD49commands[i]);
+		}
+		i2c_stop();       														// Zugriff beenden
+	}
+}
+
+// Lese MD49 Daten von Slave_Drivecontroll und speichere sie in Array MD49data
+void readMD49data(void){
+	uint8_t i;
+	// Daten von I2C- Slave lesen im MR-Mode
+	if(!(i2c_start(SLAVE_ADRESSE+I2C_WRITE))) 												// Slave bereit zum lesen?
+	{
+		i2c_write(0x15); 																	// Buffer Startadresse zum Auslesen
+		i2c_rep_start(SLAVE_ADRESSE+I2C_READ); 												// Lesen beginnen
+			for (i=0;i<18;i++)																// Empfangene Daten in Array schreiben
+				{
+					if ((i) < 17)
+					{
+						MD49data[i]=i2c_readAck();										// Bytes lesen...
+					}
+					else
+					{
+						MD49data[i]=i2c_readNak();										// letztes Byte lesen...
+					}
+				}
+		i2c_stop();																			// Zugriff beenden
+	}
+	else
+	{
+	//		/* Fehlerbehandlung... */
+	}
+}
 
 int main(void)
 {
 	init_uart();																			// UART initalisieren und einschalten. Alle n�tigen Schnittstellen-Parameter und -Funktionen werden in rs232.h definiert
 	i2c_init();																				// init I2C interface
 	sei();
+	initMD49commands();
 	uart_puts_p(FlashString);																// Demonstriert "rs232.c/uarts_put_p" f�r die Ausgabe eines Strings
-	uart_puts ("input 'w','a','s','d' to move forward, left,backward, right or 'x' to stop, followed by enter"CR);
-	uart_puts ("input 'T' or 't' followed by enter to Enable or Disable MD49 Timeout function."CR);
+	uart_puts ("input 'w','a','s','d' to move Full-orward, -left,backward, right and 'x' to stop, followed by enter"CR);
+	uart_puts ("input 'T' or 't' followed by enter to Enable or Disable (default) MD49 Timeout function."CR);
 	while(1)																				// Main- Endlosschleife
     {
+		readMD49data();
+		sendMD49commands();
 		if (UART_MSG_FLAG==1)																// UART_MSG_FLAG auswerten: gesetzt in Empfangs- Interruptroutine wenn "CR" empfangen oder UART- Puffer voll
 		{
 			if (UART_RXBuffer[0]==119){// "w"
-				if(!(i2c_start(SLAVE_ADRESSE+I2C_WRITE))){									// Slave bereit zum schreiben?
-					i2c_write(0x00);  														// Buffer Startadresse setzen
-					i2c_write(255);															// Bytes schreiben...
-					i2c_write(255);															// Bytes schreiben...
-					i2c_stop();       														// Zugriff beenden
-				}
+				MD49commands[0]=255;
+				MD49commands[1]=255;
 			}//end.if
 			if (UART_RXBuffer[0]==115){// "s"
-				if(!(i2c_start(SLAVE_ADRESSE+I2C_WRITE))){									// Slave bereit zum schreiben?
-					i2c_write(0x00);  														// Buffer Startadresse setzen
-					i2c_write(0x00);														// Bytes schreiben...
-					i2c_write(0x00);														// Bytes schreiben...
-					i2c_stop();       														// Zugriff beenden
-				}
+				MD49commands[0]=0x00;
+				MD49commands[1]=0x00;
 			}//end.if
 			if (UART_RXBuffer[0]==120){// "x"
-				if(!(i2c_start(SLAVE_ADRESSE+I2C_WRITE))){									// Slave bereit zum schreiben?
-					i2c_write(0x00);  														// Buffer Startadresse setzen
-					i2c_write(128);															// Bytes schreiben...
-					i2c_write(128);															// Bytes schreiben...
-					i2c_stop();       														// Zugriff beenden
-				}
+				MD49commands[0]=128;
+				MD49commands[1]=128;
 			}//end.if
 			if (UART_RXBuffer[0]==97){// "a"
-				if(!(i2c_start(SLAVE_ADRESSE+I2C_WRITE))){									// Slave bereit zum schreiben?
-					i2c_write(0x00);  														// Buffer Startadresse setzen
-					i2c_write(0x00);														// Bytes schreiben...
-					i2c_write(255);															// Bytes schreiben...
-					i2c_stop();       														// Zugriff beenden
-				}
+				MD49commands[0]=0x00;
+				MD49commands[1]=255;
 			}//end.if
 			if (UART_RXBuffer[0]==100){// "d"
-				if(!(i2c_start(SLAVE_ADRESSE+I2C_WRITE))){									// Slave bereit zum schreiben?
-					i2c_write(0x00);  														// Buffer Startadresse setzen
-					i2c_write(255);															// Bytes schreiben...
-					i2c_write(0x00);														// Bytes schreiben...
-					i2c_stop();       														// Zugriff beenden
-				}
+				MD49commands[0]=255;
+				MD49commands[1]=0x00;
 			}//end.if
-
 			//enable Timeout
 			if (UART_RXBuffer[0]==84){// "T"
-				if(!(i2c_start(SLAVE_ADRESSE+I2C_WRITE))){									//Slave bereit zum schreiben?
-					i2c_write(0x06);  														// Buffer Startadresse setzen
-					i2c_write(0x01);														// Bytes schreiben...
-					i2c_stop();       														// Zugriff beenden
-				}
+				MD49commands[6]=0x01;
 			}//end.if
 			//disable Timeout
 			if (UART_RXBuffer[0]==116){// "t"
-				if(!(i2c_start(SLAVE_ADRESSE+I2C_WRITE))){									//Slave bereit zum schreiben?
-					i2c_write(0x06);  														// Buffer Startadresse setzen
-					i2c_write(0x00);														// Bytes schreiben...
-					i2c_stop();       														// Zugriff beenden
-				}
+				MD49commands[6]=0x00;
 			}//end.if
-
-
-			// (3) Daten von I2C- Slave lesen im MR-Mode
-			// if(!(i2c_start(SLAVE_ADRESSE+I2C_WRITE))) //Slave bereit zum lesen?
-			//	{
-			//		uart_puts("Daten von Slave lesen: ");
-			//		i2c_write(0x00); //Buffer Startadresse zum Auslesen
-			//		i2c_rep_start(SLAVE_ADRESSE+I2C_READ); //Lesen beginnen
-//
-			//		for (i=0;i<UART_RxCount;i++)											// Empfangene Daten in Array schreiben
-			//			{
-			//				if ((i) < UART_RxCount-1)
-			//				{
-			//					TWI_RXBuffer[i]=i2c_readAck();									// Bytes schreiben...
-			//					uart_putc(TWI_RXBuffer[i]);
-			//				}
-			//				else
-			//				{
-			//					TWI_RXBuffer[i]=i2c_readNak();									// letztes Bytes schreiben...
-			//					uart_putc(TWI_RXBuffer[i]);
-			//				}
-//
-			//			}
-//
-			//		i2c_stop();																// Zugriff beenden
-			//		uart_puts(CR);
-			//	}
-			// else
-			//	{
-			//		/* Hier k�nnte eine Fehlermeldung ausgegeben werden... */
-			//		uart_puts("Fehler beim lesen der Daten an Slave"CR);
-			//	}
 			UART_MSG_FLAG=0;
 			UART_RxCount=0;
 		}//end.if uart_msg_flag set
