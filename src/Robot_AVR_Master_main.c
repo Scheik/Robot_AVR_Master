@@ -11,7 +11,7 @@
 #include "TWI_Master.h"
 #define SLAVE_ADRESSE 0x50																	// slaveadress drivecontrol
 
-const char FlashString[] PROGMEM = ("MASTER gestartet, bitte Daten gefolgt von Enter eingeben"CR);
+const char FlashString[] PROGMEM = ("MASTER gestartet..."CR);
 
 
 int main(void)
@@ -20,8 +20,8 @@ int main(void)
 	i2c_init();																				// init I2C interface
 	sei();
 	uart_puts_p(FlashString);																// Demonstriert "rs232.c/uarts_put_p" f�r die Ausgabe eines Strings
-	uart_puts ("input 'w','a','s','d' to move forward, left,backward, right or 'x' to stop, followed by enter");
-	uart_puts(CR);
+	uart_puts ("input 'w','a','s','d' to move forward, left,backward, right or 'x' to stop, followed by enter"CR);
+	uart_puts ("input 'T' or 't' followed by enter to Enable or Disable MD49 Timeout function."CR);
 	while(1)																				// Main- Endlosschleife
     {
 		if (UART_MSG_FLAG==1)																// UART_MSG_FLAG auswerten: gesetzt in Empfangs- Interruptroutine wenn "CR" empfangen oder UART- Puffer voll
