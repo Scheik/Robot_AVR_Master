@@ -11,7 +11,7 @@
 #include "TWI_Master.h"
 #define SLAVE_ADRESSE 0x50																	// slaveadress drivecontrol
 
-const char FlashString[] PROGMEM = ("MASTER gestartet..."CR);
+//const char FlashString[] PROGMEM = ("MASTER gestartet..."CR);
 volatile uint8_t MD49data[18];
 volatile uint8_t MD49commands[15];
 
@@ -52,7 +52,7 @@ void readMD49data(void){
 	// Daten von I2C- Slave lesen im MR-Mode
 	if(!(i2c_start(SLAVE_ADRESSE+I2C_WRITE))) 												// Slave bereit zum lesen?
 	{
-		i2c_write(0x15); 																	// Buffer Startadresse zum Auslesen
+		i2c_write(15); 																	// Buffer Startadresse zum Auslesen
 		i2c_rep_start(SLAVE_ADRESSE+I2C_READ); 												// Lesen beginnen
 			for (i=0;i<18;i++)																// Empfangene Daten in Array schreiben
 				{
@@ -79,11 +79,11 @@ int main(void)
 	i2c_init();																				// init I2C interface
 	sei();
 	initMD49commands();
-	uart_puts_p(FlashString);																// Demonstriert "rs232.c/uarts_put_p" f�r die Ausgabe eines Strings
+	//uart_puts_p(FlashString);																// Demonstriert "rs232.c/uarts_put_p" f�r die Ausgabe eines Strings
 	uart_puts ("input 'w','a','s','d' to move Full-orward, -left,-backward, -right and 'x' to stop, followed by enter"CR);
 	uart_puts ("input 'T' or 't' followed by enter to Enable or Disable (default) MD49 Timeout."CR);
 	uart_puts ("input 'R' or 'r' followed by enter to Enable (default) or Disable MD49 Regulator."CR);
-	uart_puts ("input 'g' followed by enter to read MD49 Data."CR);
+	uart_puts ("input 'g' or 'G' followed by enter to read MD49data formated or raw."CR);
 	while(1)																				// Main- Endlosschleife
     {
 		readMD49data();
@@ -120,8 +120,6 @@ int main(void)
 			if (UART_RXBuffer[0]==116){// "t"
 				MD49commands[6]=0x00;
 			}//end.if
-
-			//NEW
 			//enable Regulator
 			if (UART_RXBuffer[0]==82){// "R"
 				MD49commands[5]=0x01;
@@ -130,15 +128,27 @@ int main(void)
 			if (UART_RXBuffer[0]==114){// "r"
 				MD49commands[5]=0x00;
 			}//end.if
-			// send array MD49data to serial
+			// Formated send array MD49data to serial
 			if (UART_RXBuffer[0]==103){// "g"
 				uart_puts("Speed1=");uart_puti(MD49data[8]);uart_puts(" Speed2=");uart_puti(MD49data[9]);uart_puts(" Volts=");uart_puti(MD49data[10]);uart_puts(" Current1=");uart_puti(MD49data[11]);uart_puts(" Current2=");uart_puti(MD49data[12]);uart_puts(" Acceleration=");uart_puti(MD49data[14]);uart_puts(CR);
 				uart_puts("Error=");uart_puti(MD49data[13]);uart_puts(" Mode=");uart_puti(MD49data[15]);uart_puts(" Regulator=");uart_puti(MD49data[16]);uart_puts("  Timeout=");uart_puti(MD49data[17]);uart_puts(CR);
 				uart_puts("Encoder1 Byte1=");uart_puti(MD49data[0]);uart_puts(" Byte2=");uart_puti(MD49data[1]);uart_puts(" Byte3=");uart_puti(MD49data[2]);uart_puts("  Byte4=");uart_puti(MD49data[3]);uart_puts(CR);
 				uart_puts("Encoder2 Byte1=");uart_puti(MD49data[4]);uart_puts(" Byte2=");uart_puti(MD49data[5]);uart_puts(" Byte3=");uart_puti(MD49data[6]);uart_puts("  Byte4=");uart_puti(MD49data[7]);uart_puts(CR);
 			}//end.if
-			//end.NEW
-
+			// send array MD49data to serial
+			if (UART_RXBuffer[0]==71){// "G"
+				uint8_t i;
+				for (i=0;i<18;i++){
+					uart_puti(MD49data[i]);
+				}
+			}//end.if
+			// read array MD49commands from serial
+			if (UART_RXBuffer[0]==83){// "S"
+				uint8_t i;
+				for (i=1;i<16;i++){
+					MD49commands[i-1]=UART_RXBuffer[i];
+				}
+			}//end.if
 			UART_MSG_FLAG=0;
 			UART_RxCount=0;
 		}//end.if uart_msg_flag set
