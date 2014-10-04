@@ -16,7 +16,7 @@
 /** defines the data direction (writing to I2C device) in i2c_start(),i2c_rep_start() */
 #define I2C_WRITE   0
 
-extern volatile unsigned char TWI_RXBuffer[16];
+//extern volatile unsigned char TWI_RXBuffer[16];
 
 /**
  @brief initialize the I2C master interace. Need to be called only once

@@ -17,7 +17,7 @@
 
 /*Variablen*/
 /************************************************************************/
-volatile unsigned char TWI_RXBuffer[16];
+//volatile unsigned char TWI_RXBuffer[16];
 
 /*************************************************************************
  Initialization of the I2C bus interface. Need to be called only once

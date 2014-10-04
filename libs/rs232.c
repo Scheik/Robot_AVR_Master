@@ -57,9 +57,10 @@ ISR(USART_RXC_vect)
 	Temp = UDR;																// Lesen des Datenregisters, l�scht Interrupt.
 	UART_RXBuffer[UART_RxCount]=Temp;										// Speichere zeichen im Puffer- Array und ...
 	UART_RxCount++;															// erh�he Pufferz�hler.
-	if((Temp==0x0d) OR (UART_RxCount==UART_BUFFER_SIZE))					// <CR> oder Puffer voll?
+	//if((Temp==0x0d) OR (UART_RxCount==UART_BUFFER_SIZE))					// <CR> oder Puffer voll?
+	if(UART_RxCount==UART_BUFFER_SIZE)										// Puffer voll?
 	{
-		UART_MSG_FLAG=1;													// Flag zeigt an ob das letzte empfangene Zeichen ein <CR> war ooder der Puffer voll ist, kann in Main-Funktion ausgewertet werden
+		UART_MSG_FLAG=1;													// Flag zeigt an ob das letzte empfangene Zeichen ein <CR> war oder der Puffer voll ist, kann in Main-Funktion ausgewertet werden
 	}
 }
 
