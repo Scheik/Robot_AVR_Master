@@ -12,7 +12,7 @@
 #define SLAVE_ADRESSE 0x50			// Slaveadresse von AVR-Slave-Drivecontrol
 
 //const char FlashString[] PROGMEM = ("MASTER gestartet..."CR);
-volatile uint8_t MD49data[18];
+volatile unsigned char MD49data[18];
 volatile uint8_t MD49commands[15];
 
 void initMD49commands(void){
@@ -113,7 +113,7 @@ int main(void)
 				uint8_t i;
 				readMD49data();
 				for (i=0;i<18;i++){
-					uart_puti(MD49data[i]);				// Alle MD49-Daten senden...
+					uart_putc(MD49data[i]);				// Alle MD49-Daten senden...
 				}
 			}
 			sendMD49commands();
