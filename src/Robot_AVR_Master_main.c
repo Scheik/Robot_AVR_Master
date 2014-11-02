@@ -88,9 +88,6 @@ int main(void)
 
 	while(1)											// Main- Endlosschleife
     {
-		readMD49data();
-		sendMD49commands();
-
 		//parse commands
 		if (UART_MSG_FLAG==1){							// UART_MSG_FLAG auswerten: gesetzt in Empfangs- Interruptroutine wenn "CR" empfangen oder UART- Puffer voll
 			if (UART_RXBuffer[0]==84){// "T"			// T als erstes Zeichen empfangen bedeutet, dass alle MD49Kommandos im Paket gesendet wurden.
@@ -115,11 +112,12 @@ int main(void)
 			if (UART_RXBuffer[0]==82){// "R"			// R als erstes Zeichen empfangen bedeutet,	dass alle MD49-Daten angefordert wurden
 			// Data angefordert, MD49data senden:
 				uint8_t i;
+				readMD49data();
 				for (i=0;i<18;i++){
 					uart_puti(MD49data[i]);				// Alle MD49-Daten senden...
 				}
 			}
-
+			sendMD49commands();
 			UART_MSG_FLAG=0;
 			UART_RxCount=0;
 		}//end.if uart_msg_flag set
