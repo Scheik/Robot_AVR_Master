@@ -92,10 +92,18 @@ int main(void)
 		//parse commands
 		if (UART_MSG_FLAG==1){							// UART_MSG_FLAG auswerten: gesetzt in Empfangs- Interruptroutine wenn "CR" empfangen oder UART- Puffer voll
 			if (UART_RXBuffer[0]==84){// "T"
-			// Commands empfangen, MD49Commands überschreiben:
+			// All Commands empfangen, Alle MD49Commands überschreiben:
 				uint8_t i;
 				for (i=0;i<UART_RxCount-1;i++){
 					MD49commands[i]=UART_RXBuffer[i+1];
+				}
+			}
+			if (UART_RXBuffer[0]==88){// "X"
+			// Single Command empfangen
+				if (UART_RXBuffer[1]==115){// "s"
+				// setSpeed 1 + 2
+					MD49commands[0]=UART_RXBuffer[2];	// set speed1 wit received value
+					MD49commands[1]=UART_RXBuffer[3];	// set speed2 with received value
 				}
 			}
 			if (UART_RXBuffer[0]==82){// "R"
