@@ -33,7 +33,6 @@ void initMD49commands(void){
 	MD49commands[14]=0;		// Encoder2 Byte 4
 }
 
-
 // Sende in Array MD49commands gesetzte Befehle für MD49 an AVR_Slave_DriveControl
 // im Master-Transmitter-Mode
 void sendMD49commands(void){
