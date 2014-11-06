@@ -36,9 +36,9 @@
 
 /*Variablen*/
 /************************************************************************/
-//volatile uint8_t UART_MSG_FLAG;												// Hilfs-Variable UART_MSG_FLAG. Wird in RX-Interruptroutine gesetzt, wenn letzes empfangenes Zeichen ein Linefeed (CR) war oder Ringpuffer voll ist
-//volatile unsigned char UART_RXBuffer[UART_BUFFER_SIZE];						// Ringpuffer- Array f�r empfangene	UART Daten, Gr��e UART_BUFFER_SIZE definiert in RS232.h
-//volatile uint8_t UART_RxCount = 0;											// Z�hlt empfangene Zeichen im UART- Ringpuffer
+volatile uint8_t UART_MSG_FLAG;												// Hilfs-Variable UART_MSG_FLAG. Wird in RX-Interruptroutine gesetzt, wenn letzes empfangenes Zeichen ein Linefeed (CR) war oder Ringpuffer voll ist
+volatile unsigned char UART_RXBuffer[UART_BUFFER_SIZE];						// Ringpuffer- Array f�r empfangene	UART Daten, Gr��e UART_BUFFER_SIZE definiert in RS232.h
+volatile uint8_t UART_RxCount = 0;											// Z�hlt empfangene Zeichen im UART- Ringpuffer
 
 
 /*Funktionen*/
@@ -51,18 +51,18 @@ Zweck:		Interruptroutine RX
 Eingabe:    none
 Ausgabe:	none
 **************************************************************************/
-//ISR(USART_RXC_vect)
-//{
-//	unsigned char Temp;
-//	Temp = UDR;																// Lesen des Datenregisters, l�scht Interrupt.
-//	UART_RXBuffer[UART_RxCount]=Temp;										// Speichere zeichen im Puffer- Array und ...
-//	UART_RxCount++;															// erh�he Pufferz�hler.
-//	//if((Temp==0x0d) OR (UART_RxCount==UART_BUFFER_SIZE))					// <CR> oder Puffer voll?
-//	if(UART_RxCount==UART_BUFFER_SIZE)										// Puffer voll?
-//	{
-//		UART_MSG_FLAG=1;													// Flag zeigt an ob das letzte empfangene Zeichen ein <CR> war oder der Puffer voll ist, kann in Main-Funktion ausgewertet werden
-//	}
-//}
+ISR(USART_RXC_vect)
+{
+	unsigned char Temp;
+	Temp = UDR;																// Lesen des Datenregisters, l�scht Interrupt.
+	UART_RXBuffer[UART_RxCount]=Temp;										// Speichere zeichen im Puffer- Array und ...
+	UART_RxCount++;															// erh�he Pufferz�hler.
+	//if((Temp==0x0d) OR (UART_RxCount==UART_BUFFER_SIZE))					// <CR> oder Puffer voll?
+	if(UART_RxCount==UART_BUFFER_SIZE)										// Puffer voll?
+	{
+		UART_MSG_FLAG=1;													// Flag zeigt an ob das letzte empfangene Zeichen ein <CR> war oder der Puffer voll ist, kann in Main-Funktion ausgewertet werden
+	}
+}
 
 
 /*************************************************************************
@@ -74,12 +74,12 @@ Ausgabe:	none
 void init_uart()
 {
 	//f�r ATMega16/32
-	UCSRB |= (1 << RXEN) | (1 << TXEN);										// Setze Bits um UART Sende- und Empfangstreiber zu aktivieren
-	UCSRC |= (1 << URSEL) | (1 << UCSZ0) | (1 << UCSZ1);					// Setze Bits f�r Schnittstellenkonfiguration. Hier: 8N1
-	// Set baud rate:
-	UBRRH = (BAUD_PRESCALE >> 8);											// lade High-Byte (die oberen 8-bits) der Baudratenvariable in das High-Byte des UBRR Registers
-	UBRRL = BAUD_PRESCALE;													// lade Low-Byte (die unteren 8-bits) der Baudratenvariable in das Low-Byte des UBRR Registers
-	//UCSRB |= (1 << RXCIE);		// Empfangen mit Interrupt													// setzten dieses Bits schaltet "USART Recieve Complete interrupt (USART_RXC)" ein
+		UCSRB |= (1 << RXEN) | (1 << TXEN);										// Setze Bits um UART Sende- und Empfangstreiber zu aktivieren
+		UCSRC |= (1 << URSEL) | (1 << UCSZ0) | (1 << UCSZ1);					// Setze Bits f�r Schnittstellenkonfiguration. Hier: 8N1
+		// Set baud rate:
+		UBRRH = (BAUD_PRESCALE >> 8);											// lade High-Byte (die oberen 8-bits) der Baudratenvariable in das High-Byte des UBRR Registers
+		UBRRL = BAUD_PRESCALE;													// lade Low-Byte (die unteren 8-bits) der Baudratenvariable in das Low-Byte des UBRR Registers
+		UCSRB |= (1 << RXCIE);													// setzten dieses Bits schaltet "USART Recieve Complete interrupt (USART_RXC)" ein
 }
 
 
@@ -141,11 +141,3 @@ void uart_puti(const int val )
     char buffer[8];
     uart_puts( itoa(val, buffer, 10) );
 }
-
-uint8_t uart_getc(void) {
-	while (!(UCSRA & (1 << RXC)))
-		// warten bis Zeichen verfuegbar
-		;
-	return UDR;                   // Zeichen aus UDR an Aufrufer zurueckgeben
-}
-
