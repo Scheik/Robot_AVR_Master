@@ -82,44 +82,33 @@ int main(void)
 {
 	init_uart();										// UART initalisieren und einschalten. Alle n�tigen Schnittstellen-Parameter und -Funktionen werden in rs232.h definiert
 	i2c_init();											// init I2C interface
-	//sei();
+	sei();
 	initMD49commands();
-
-	uint8_t UART_RXBuffer;
 
 	while(1)											// Main- Endlosschleife
     {
 		//parse commands
-		UART_RXBuffer=uart_getc();
-
-		//if (UART_MSG_FLAG==1){						// UART_MSG_FLAG auswerten: gesetzt in Empfangs- Interruptroutine wenn "CR" empfangen oder UART- Puffer voll
-			if (UART_RXBuffer==84){// "T"				// T als erstes Zeichen empfangen bedeutet, dass alle MD49Kommandos im Paket gesendet wurden.
+		if (UART_MSG_FLAG==1){							// UART_MSG_FLAG auswerten: gesetzt in Empfangs- Interruptroutine wenn "CR" empfangen oder UART- Puffer voll
+			if (UART_RXBuffer[0]==84){// "T"			// T als erstes Zeichen empfangen bedeutet, dass alle MD49Kommandos im Paket gesendet wurden.
 				uint8_t i;
-
-				for (i=0;i<15;i++){
-					UART_RXBuffer=uart_getc();
-					MD49commands[i]=UART_RXBuffer;		// MD49Kommandos mit neu empfangenen Kommandos überschreiben
+				for (i=0;i<UART_RxCount-1;i++){
+					MD49commands[i]=UART_RXBuffer[i+1];	// MD49Kommandos mit neu empfangenen Kommandos überschreiben
 				}
 			}
+			if (UART_RXBuffer[0]==88){// "X"			// X als erstes Zeichen empfangen bedeutet, dass ein bestimmtes MD49Kommando empfangen wurde
 
-			else if (UART_RXBuffer==88){// "X"			// X als erstes Zeichen empfangen bedeutet, dass ein bestimmtes MD49Kommando empfangen wurde
-				UART_RXBuffer=uart_getc();
-				if (UART_RXBuffer==115){//"s"		// s: setSpeed 1 + 2
-					UART_RXBuffer=uart_getc();
-					MD49commands[0]=UART_RXBuffer;	// set speed1 with received value
-					UART_RXBuffer=uart_getc();
-					MD49commands[1]=UART_RXBuffer;	// set speed2 with received value
+				if (UART_RXBuffer[1]==115){//"s"		// s: setSpeed 1 + 2
+					MD49commands[0]=UART_RXBuffer[2];	// set speed1 with received value
+					MD49commands[1]=UART_RXBuffer[3];	// set speed2 with received value
 				}
-				if (UART_RXBuffer==97){//"a"			// a: Acceleration
-					UART_RXBuffer=uart_getc();
-					MD49commands[2]=UART_RXBuffer;	// set Acceleration with received value
+				if (UART_RXBuffer[1]==97){//"a"			// a: Acceleration
+					MD49commands[2]=UART_RXBuffer[2];	// set Acceleration with received value
 				}
-				if (UART_RXBuffer==109){//"m"		// m: setMode
-					UART_RXBuffer=uart_getc();
-					MD49commands[3]=UART_RXBuffer;	// set Mode with received value
+				if (UART_RXBuffer[1]==109){//"m"		// m: setMode
+					MD49commands[3]=UART_RXBuffer[2];	// set Mode with received value
 				}
 			}
-			else if (UART_RXBuffer==82){// "R"			// R als erstes Zeichen empfangen bedeutet,	dass alle MD49-Daten angefordert wurden
+			if (UART_RXBuffer[0]==82){// "R"			// R als erstes Zeichen empfangen bedeutet,	dass alle MD49-Daten angefordert wurden
 			// Data angefordert, MD49data senden:
 				uint8_t i;
 				readMD49data();
@@ -128,8 +117,8 @@ int main(void)
 				}
 			}
 			sendMD49commands();
-			//UART_MSG_FLAG=0;
-			//UART_RxCount=0;
-		//}//end.if uart_msg_flag set
+			UART_MSG_FLAG=0;
+			UART_RxCount=0;
+		}//end.if uart_msg_flag set
 	}//end.while(1) endless loop
 }//end.main
