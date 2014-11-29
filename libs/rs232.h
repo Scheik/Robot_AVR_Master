@@ -14,7 +14,7 @@
 /* RS232 Definitionen                   */
 /****************************************/
 #define UART_BUFFER_SIZE 16													// UART-Puffer- Gr��e, in Bytes
-#define UART_BAUDRATE 19200UL												// RS232 Baudrate
+#define UART_BAUDRATE 38400UL												// RS232 Baudrate
 #define BAUD_PRESCALE (((F_CPU / (UART_BAUDRATE * 16UL))) - 1)
 #define UBRR_VAL ((F_CPU+UART_BAUDRATE*8)/(UART_BAUDRATE*16)-1)				// runden
 #define BAUD_REAL (F_CPU/(16*(UBRR_VAL+1)))									// Reale Baudrate bei gegebener Taktfrequenz (FCPU) ermitteln
