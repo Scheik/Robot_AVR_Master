@@ -89,6 +89,10 @@ int main(void)
 
 	while(1)											// Main- Endlosschleife
     {
+
+		sendMD49commands();
+		readMD49data();
+
 		//parse commands
 		UART_RXBuffer=uart_getc();
 
@@ -122,12 +126,11 @@ int main(void)
 			else if (UART_RXBuffer==82){// "R"			// R als erstes Zeichen empfangen bedeutet,	dass alle MD49-Daten angefordert wurden
 			// Data angefordert, MD49data senden:
 				uint8_t i;
-				readMD49data();
 				for (i=0;i<18;i++){
 					uart_putc(MD49data[i]);				// Alle MD49-Daten senden...
 				}
 			}
-			sendMD49commands();
+
 			//UART_MSG_FLAG=0;
 			//UART_RxCount=0;
 		//}//end.if uart_msg_flag set
