@@ -22,7 +22,7 @@ void initMD49commands(void){
 	MD49commands[3]=0;		// default mode=0
 	MD49commands[4]=0;		// 0=do not reset encoders (default, 1=reset encoders
 	MD49commands[5]=1;		// regulator enabled (default)
-	MD49commands[6]=0;		// timeout disabled (default)
+	MD49commands[6]=1;		// timeout enabled (default)
 	MD49commands[7]=0;		// Encoder1 Byte 1
 	MD49commands[8]=0;		// Encoder1 Byte 2
 	MD49commands[9]=0;		// Encoder1 Byte 3
